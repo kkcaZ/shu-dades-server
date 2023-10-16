@@ -15,7 +15,10 @@ type Config struct {
 }
 
 type Service struct {
-	LogLevel string `yaml:"logLevel" env:"LOG_LEVEL" env-default:"info"`
+	LogLevel   string `yaml:"logLevel" env:"LOG_LEVEL" env-default:"info"`
+	Host       string `yaml:"host" env:"HOST" env-default:"localhost"`
+	Port       string `yaml:"port" env:"PORT" env-default:"8080"`
+	SocketType string `yaml:"socketType" env:"SOCKET_TYPE" env-default:"tcp"`
 }
 
 func GetConfig() (*Config, error) {
