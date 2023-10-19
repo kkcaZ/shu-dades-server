@@ -2,14 +2,13 @@ package server
 
 import (
 	"github.com/kkcaz/shu-dades-server/internal/config"
-	"github.com/kkcaz/shu-dades-server/internal/domain"
-	routerUc "github.com/kkcaz/shu-dades-server/internal/router/usecase"
+	routerUc "github.com/kkcaz/shu-dades-server/internal/router"
 	"github.com/pkg/errors"
 	"log/slog"
 	"os"
 )
 
-func Inject(cfg *config.Config) (domain.RouterUseCase, error) {
+func Inject(cfg *config.Config) (*routerUc.RouterUseCase, error) {
 	logger, err := initLogger(cfg)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed whilst initialising logger")
