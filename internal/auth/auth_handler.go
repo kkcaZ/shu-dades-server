@@ -44,6 +44,7 @@ func (a AuthHandler) Authenticate(ctx *router.RouterContext) {
 	}
 
 	ctx.JSON(200, models.AuthResponse{
-		Token: *token,
+		StatusCode: 200,
+		Token:      *token,
 	})
 }
