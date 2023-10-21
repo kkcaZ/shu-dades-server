@@ -16,7 +16,7 @@ func NewAuthHandler(router *router.RouterUseCase, uc domain.AuthUseCase) {
 		AuthUseCase: uc,
 	}
 
-	router.AddRoute("/auth", handler.Authenticate)
+	router.AddRoute("/auth", models.POST, handler.Authenticate)
 }
 
 func (a AuthHandler) Authenticate(ctx *router.RouterContext) {

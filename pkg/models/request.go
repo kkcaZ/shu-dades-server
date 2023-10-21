@@ -5,11 +5,31 @@ type Request struct {
 	Route string `json:"route"`
 
 	// The request Type, e.g. GET, POST, PUT, DELETE
-	Type string `json:"type"`
+	Type RequestType `json:"type"`
 
 	// The request body
 	Body interface{} `json:"body"`
 
 	// The request headers
 	Headers string `json:"headers"`
+}
+
+type RequestType string
+
+const (
+	GET    RequestType = "GET"
+	POST   RequestType = "POST"
+	PUT    RequestType = "PUT"
+	DELETE RequestType = "DELETE"
+)
+
+type RequestById struct {
+	Id int `json:"id"`
+}
+
+type SearchRequest struct {
+	PageNumber int    `json:"pageNumber"`
+	PageSize   int    `json:"pageSize"`
+	SortBy     SortBy `json:"sortBy"`
+	Order      Order  `json:"order"`
 }

@@ -9,15 +9,20 @@ import (
 	"net"
 )
 
+type HandlerKey struct {
+	Route  string
+	Method models.RequestType
+}
+
 type RouterUseCase struct {
 	Logger   slog.Logger
-	Handlers map[string]func(ctx *RouterContext)
+	Handlers map[HandlerKey]func(ctx *RouterContext)
 }
 
 func NewRouterUseCase(logger slog.Logger) *RouterUseCase {
 	return &RouterUseCase{
 		Logger:   logger,
-		Handlers: make(map[string]func(ctx *RouterContext)),
+		Handlers: make(map[HandlerKey]func(ctx *RouterContext)),
 	}
 }
 
@@ -35,10 +40,13 @@ func (r *RouterUseCase) Handle(conn net.Conn) error {
 		return errors.Wrapf(err, "failed to parse message: ")
 	}
 
-	route := req.Route
-	handler, ok := r.Handlers[route]
+	handlerKey := HandlerKey{
+		Route:  req.Route,
+		Method: req.Type,
+	}
+	handler, ok := r.Handlers[handlerKey]
 	if !ok {
-		return errors.New(fmt.Sprintf("no handler found for route: %s", route))
+		return errors.New(fmt.Sprintf("no handler found for key: %v", handlerKey))
 	}
 
 	reqBody, err := json.Marshal(req.Body)
@@ -73,6 +81,10 @@ func (r *RouterUseCase) parseMessage(message []byte) (*models.Request, error) {
 	return &request, nil
 }
 
-func (r *RouterUseCase) AddRoute(route string, handler func(ctx *RouterContext)) {
-	r.Handlers[route] = handler
+func (r *RouterUseCase) AddRoute(route string, method models.RequestType, handler func(ctx *RouterContext)) {
+	key := HandlerKey{
+		Route:  route,
+		Method: method,
+	}
+	r.Handlers[key] = handler
 }

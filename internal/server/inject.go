@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/kkcaz/shu-dades-server/internal/auth"
 	"github.com/kkcaz/shu-dades-server/internal/config"
+	"github.com/kkcaz/shu-dades-server/internal/product"
 	routerUc "github.com/kkcaz/shu-dades-server/internal/router"
 	"github.com/pkg/errors"
 	"log/slog"
@@ -18,9 +19,13 @@ func Inject(cfg *config.Config) (*routerUc.RouterUseCase, error) {
 	logger.Info("Logger initialised")
 
 	authUseCase := auth.NewAuthUseCase()
+	productRepository := product.NewProductRepository()
+	productUseCase := product.NewProductUseCase(productRepository)
 
 	router := routerUc.NewRouterUseCase(*logger)
+	product.NewProductHandler(router, productUseCase)
 	auth.NewAuthHandler(router, authUseCase)
+
 	return router, nil
 }
 
