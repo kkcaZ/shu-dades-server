@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/kkcaz/shu-dades-server/internal/domain"
 	"github.com/kkcaz/shu-dades-server/pkg/models"
+	"log/slog"
 	"os"
 )
 
@@ -13,17 +14,19 @@ type productData struct {
 }
 
 type productRepository struct {
+	Logger      slog.Logger
 	products    []models.Product
 	validTokens []string
 }
 
-func NewProductRepository() domain.ProductRepository {
+func NewProductRepository(logger slog.Logger) domain.ProductRepository {
 	products, err := readProducts()
 	if err != nil {
 		panic(err)
 	}
 
 	return &productRepository{
+		Logger:   logger,
 		products: products,
 	}
 }
@@ -48,7 +51,7 @@ func readProducts() ([]models.Product, error) {
 	return productData.Products, nil
 }
 
-func (p productRepository) Get(id int) (*models.Product, error) {
+func (p *productRepository) Get(id int) (*models.Product, error) {
 	for _, product := range p.products {
 		if product.Id == id {
 			return &product, nil
@@ -58,16 +61,17 @@ func (p productRepository) Get(id int) (*models.Product, error) {
 	return nil, nil
 }
 
-func (p productRepository) GetAll() ([]models.Product, error) {
+func (p *productRepository) GetAll() ([]models.Product, error) {
 	return p.products, nil
 }
 
-func (p productRepository) Create(product *models.Product) error {
-	p.products = append(p.products, *product)
+func (p *productRepository) Create(product models.Product) error {
+	p.Logger.Debug("Creating product: {product}", "product", product)
+	p.products = append(p.products, product)
 	return nil
 }
 
-func (p productRepository) Delete(id int) error {
+func (p *productRepository) Delete(id int) error {
 	for i, product := range p.products {
 		if product.Id == id {
 			p.products = append(p.products[:i], p.products[i+1:]...)

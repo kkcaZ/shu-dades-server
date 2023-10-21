@@ -89,12 +89,18 @@ func (p ProductHandler) Search(ctx *router.RouterContext) {
 
 func (p ProductHandler) Create(ctx *router.RouterContext) {
 	var createProductRequest models.CreateProductRequest
-
-	product := models.Product{
-		Name: createProductRequest.Name,
+	err := json.Unmarshal([]byte(ctx.Body), &createProductRequest)
+	if err != nil {
+		ctx.JSON(500, models.NewInternalServerError())
+		return
 	}
 
-	err := p.ProductUseCase.Create(&product)
+	product := models.Product{
+		Name:     createProductRequest.Name,
+		Quantity: createProductRequest.Quantity,
+	}
+
+	err = p.ProductUseCase.Create(product)
 	if err != nil {
 		ctx.JSON(500, models.NewInternalServerError())
 		return
@@ -108,13 +114,18 @@ func (p ProductHandler) Create(ctx *router.RouterContext) {
 
 func (p ProductHandler) Update(ctx *router.RouterContext) {
 	var updateProductRequest models.UpdateProductRequest
+	err := json.Unmarshal([]byte(ctx.Body), &updateProductRequest)
+	if err != nil {
+		ctx.JSON(500, models.NewInternalServerError())
+		return
+	}
 
 	product := models.Product{
 		Id:   updateProductRequest.Id,
 		Name: updateProductRequest.Name,
 	}
 
-	err := p.ProductUseCase.Update(&product)
+	err = p.ProductUseCase.Update(&product)
 	if err != nil {
 		ctx.JSON(500, models.NewInternalServerError())
 		return

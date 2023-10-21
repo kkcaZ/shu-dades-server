@@ -19,7 +19,7 @@ func Inject(cfg *config.Config) (*routerUc.RouterUseCase, error) {
 	logger.Info("Logger initialised")
 
 	authUseCase := auth.NewAuthUseCase()
-	productRepository := product.NewProductRepository()
+	productRepository := product.NewProductRepository(*logger)
 	productUseCase := product.NewProductUseCase(productRepository)
 
 	router := routerUc.NewRouterUseCase(*logger)

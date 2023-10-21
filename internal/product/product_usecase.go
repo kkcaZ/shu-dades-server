@@ -69,7 +69,7 @@ func (p productUseCase) Search(pageNumber int, pageSize int, sortBy models.SortB
 	return products[start:end], nil
 }
 
-func (p productUseCase) Create(product *models.Product) error {
+func (p productUseCase) Create(product models.Product) error {
 	products, err := p.GetAll()
 	if err != nil {
 		return err
@@ -103,7 +103,7 @@ func (p productUseCase) Update(product *models.Product) error {
 		return err
 	}
 
-	err = p.ProductRepository.Create(product)
+	err = p.ProductRepository.Create(*product)
 	if err != nil {
 		return err
 	}
