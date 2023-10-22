@@ -6,6 +6,11 @@ type AuthRequest struct {
 }
 
 type AuthResponse struct {
-	StatusCode int    `json:"statusCode"`
-	Token      string `json:"token"`
+	StatusCode int        `json:"statusCode"`
+	UserClaim  *UserClaim `json:"userClaim"`
+}
+
+type UserClaim struct {
+	Token string `json:"token"`
+	Role  Role   `json:"role"`
 }

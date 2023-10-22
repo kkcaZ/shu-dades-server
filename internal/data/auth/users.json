@@ -1,9 +1,16 @@
 {
   "users": [
     {
-      "username": "admin",
+      "username": "supplier",
       "password": "password",
-      "email": "johndoe@example.com"
+      "email": "info@supplier.com",
+      "role": "supplier"
+    },
+    {
+      "username": "customer",
+      "password": "password",
+      "email": "john@gmail.com",
+      "role": "customer"
     }
   ]
 }

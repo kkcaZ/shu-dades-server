@@ -32,19 +32,19 @@ func (a AuthHandler) Authenticate(ctx *router.RouterContext) {
 		return
 	}
 
-	token, err := a.AuthUseCase.Authenticate(authRequest.Username, authRequest.Password)
+	userClaim, err := a.AuthUseCase.Authenticate(authRequest.Username, authRequest.Password)
 	if err != nil {
 		ctx.JSON(500, err)
 		return
 	}
 
-	if token == nil {
+	if userClaim == nil {
 		ctx.JSON(401, models.NewErrorResponse(401, "Invalid username or password"))
 		return
 	}
 
 	ctx.JSON(200, models.AuthResponse{
 		StatusCode: 200,
-		Token:      *token,
+		UserClaim:  userClaim,
 	})
 }

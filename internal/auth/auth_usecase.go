@@ -49,19 +49,22 @@ func readUsers() ([]models.User, error) {
 	return userData.Users, nil
 }
 
-func (a authUseCase) Authenticate(username string, password string) (*string, error) {
+func (a *authUseCase) Authenticate(username string, password string) (*models.UserClaim, error) {
 	for _, user := range a.users {
 		if user.Username == username && user.Password == password {
 			token := generateToken()
 			a.validTokens = append(a.validTokens, token)
-			return &token, nil
+			return &models.UserClaim{
+				Token: token,
+				Role:  user.Role,
+			}, nil
 		}
 	}
 
 	return nil, nil
 }
 
-func (a authUseCase) TokenIsValid(token string) bool {
+func (a *authUseCase) TokenIsValid(token string) bool {
 	for _, validToken := range a.validTokens {
 		if validToken == token {
 			return true
