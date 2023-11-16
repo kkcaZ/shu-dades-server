@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/kkcaz/shu-dades-server/internal/config"
+	"github.com/kkcaz/shu-dades-server/internal/router"
 	"log"
 	"log/slog"
 	"net"
@@ -43,7 +44,7 @@ func Run() {
 			}
 
 			slog.Info("Accepted connection from " + connect.RemoteAddr().String())
-			err = router.Handle(connect)
+			go handleConnection(connect, router)
 			if err != nil {
 				slog.Error("failed to handle connection: " + err.Error())
 			}
@@ -52,4 +53,30 @@ func Run() {
 
 	<-interrupt
 	slog.Info("Shutting down server")
+}
+
+func handleConnection(conn net.Conn, router *router.RouterUseCase) {
+	buffer := make([]byte, 1024)
+
+	for {
+		mLen, err := conn.Read(buffer)
+		if err != nil {
+			slog.Error("failed to read from connection", "error", err)
+			return
+		}
+
+		response, err := router.Handle(buffer, mLen)
+		if err != nil {
+			slog.Error("failed to handle message", "error", err)
+			return
+		}
+
+		if response != nil {
+			_, err = conn.Write([]byte(*response))
+			if err != nil {
+				slog.Error("failed to write to connection", "error", err)
+				return
+			}
+		}
+	}
 }
