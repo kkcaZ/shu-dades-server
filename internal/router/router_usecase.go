@@ -25,12 +25,12 @@ func NewRouterUseCase(logger slog.Logger) *RouterUseCase {
 	}
 }
 
-func (r *RouterUseCase) Handle(buffer []byte, mLen int) (*string, error) {
+func (r *RouterUseCase) Handle(buffer []byte, mLen int, remoteAddr string) (*string, error) {
 	r.Logger.Info("received message: " + string(buffer[:mLen]))
 
 	req, err := r.parseMessage(buffer[:mLen])
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse message: ")
+		return nil, errors.Wrap(err, "failed to parse message: ")
 	}
 
 	handlerKey := HandlerKey{
@@ -50,10 +50,12 @@ func (r *RouterUseCase) Handle(buffer []byte, mLen int) (*string, error) {
 	ctx := &RouterContext{
 		Body:    string(reqBody),
 		Headers: req.Headers,
+		Sender:  remoteAddr,
 	}
 
 	handler(ctx)
 
+	r.Logger.Info("sending message", "message", *ctx.Response, "remoteAddress", remoteAddr)
 	return ctx.Response, nil
 }
 

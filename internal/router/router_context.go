@@ -1,11 +1,14 @@
 package router
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type RouterContext struct {
 	Body     string
 	Headers  string
 	Response *string
+	Sender   string
 }
 
 func (rc *RouterContext) JSON(code int, i interface{}) {

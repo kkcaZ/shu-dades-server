@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/kkcaz/shu-dades-server/internal/auth"
+	"github.com/kkcaz/shu-dades-server/internal/broadcast"
 	"github.com/kkcaz/shu-dades-server/internal/config"
 	"github.com/kkcaz/shu-dades-server/internal/product"
 	routerUc "github.com/kkcaz/shu-dades-server/internal/router"
@@ -10,10 +11,10 @@ import (
 	"os"
 )
 
-func Inject(cfg *config.Config) (*routerUc.RouterUseCase, error) {
+func Inject(cfg *config.Config) (*routerUc.RouterUseCase, *broadcast.BroadcastUseCase, error) {
 	logger, err := initLogger(cfg)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed whilst initialising logger")
+		return nil, nil, errors.Wrap(err, "failed whilst initialising logger")
 	}
 
 	logger.Info("Logger initialised")
@@ -23,10 +24,12 @@ func Inject(cfg *config.Config) (*routerUc.RouterUseCase, error) {
 	productUseCase := product.NewProductUseCase(productRepository)
 
 	router := routerUc.NewRouterUseCase(*logger)
+	broadcastUseCase := broadcast.NewBroadcastUseCase(*logger)
 	product.NewProductHandler(router, productUseCase)
 	auth.NewAuthHandler(router, authUseCase)
+	broadcast.NewBroadcastHandler(router, broadcastUseCase)
 
-	return router, nil
+	return router, broadcastUseCase, nil
 }
 
 func initLogger(cfg *config.Config) (*slog.Logger, error) {
