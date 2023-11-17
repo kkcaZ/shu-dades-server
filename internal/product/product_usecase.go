@@ -1,6 +1,7 @@
 package product
 
 import (
+	"github.com/google/uuid"
 	"github.com/kkcaz/shu-dades-server/internal/domain"
 	"github.com/kkcaz/shu-dades-server/pkg/models"
 	"github.com/pkg/errors"
@@ -18,7 +19,7 @@ func NewProductUseCase(productRepository domain.ProductRepository) domain.Produc
 	}
 }
 
-func (p productUseCase) Get(id int) (*models.Product, error) {
+func (p productUseCase) Get(id string) (*models.Product, error) {
 	product, err := p.ProductRepository.Get(id)
 	if err != nil {
 		return nil, err
@@ -70,18 +71,9 @@ func (p productUseCase) Search(pageNumber int, pageSize int, sortBy models.SortB
 }
 
 func (p productUseCase) Create(product models.Product) error {
-	products, err := p.GetAll()
-	if err != nil {
-		return err
-	}
+	product.Id = uuid.New().String()
 
-	if products == nil {
-		product.Id = 1
-	} else {
-		product.Id = products[len(products)-1].Id + 1
-	}
-
-	err = p.ProductRepository.Create(product)
+	err := p.ProductRepository.Create(product)
 	if err != nil {
 		return err
 	}
@@ -111,7 +103,7 @@ func (p productUseCase) Update(product *models.Product) error {
 	return nil
 }
 
-func (p productUseCase) Delete(id int) error {
+func (p productUseCase) Delete(id string) error {
 	err := p.ProductRepository.Delete(id)
 	if err != nil {
 		return err

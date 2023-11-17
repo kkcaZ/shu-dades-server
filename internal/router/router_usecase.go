@@ -30,7 +30,12 @@ func (r *RouterUseCase) Handle(buffer []byte, mLen int, remoteAddr string) (*str
 
 	req, err := r.parseMessage(buffer[:mLen])
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse message: ")
+		respBytes, err := json.Marshal(models.NewErrorResponse(400, "Invalid request"))
+		if err != nil {
+			return nil, err
+		}
+		resp := string(respBytes)
+		return &resp, errors.Wrap(err, "failed to parse message: ")
 	}
 
 	handlerKey := HandlerKey{

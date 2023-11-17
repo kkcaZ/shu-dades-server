@@ -1,24 +1,32 @@
 package broadcast
 
 import (
+	"github.com/kkcaz/shu-dades-server/internal/domain"
 	"github.com/kkcaz/shu-dades-server/pkg/models"
 	"log/slog"
 	"net"
 )
 
 type BroadcastUseCase struct {
-	Logger      slog.Logger
-	Connections []models.BroadcastConnection
+	Logger              slog.Logger
+	Connections         []models.BroadcastConnection
+	NotificationUseCase domain.NotificationUseCase
 }
 
-func NewBroadcastUseCase(logger slog.Logger) *BroadcastUseCase {
+func NewBroadcastUseCase(logger slog.Logger, nuc domain.NotificationUseCase) *BroadcastUseCase {
 	return &BroadcastUseCase{
-		Logger:      logger,
-		Connections: make([]models.BroadcastConnection, 0),
+		Logger:              logger,
+		NotificationUseCase: nuc,
+		Connections:         make([]models.BroadcastConnection, 0),
 	}
 }
 
 func (b *BroadcastUseCase) Publish(message string, sender string) error {
+	err := b.NotificationUseCase.AddAll(message)
+	if err != nil {
+		return err
+	}
+
 	for _, conn := range b.Connections {
 		b.Logger.Info("sending message", "message", message, "remoteAddress", conn)
 		connClient, err := net.Dial("tcp", conn.SubscribeAddress)

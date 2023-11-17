@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/kkcaz/shu-dades-server/internal/domain"
 	"github.com/kkcaz/shu-dades-server/pkg/models"
+	"github.com/pkg/errors"
 	"math/rand"
 	"os"
 )
@@ -15,7 +16,7 @@ type userData struct {
 
 type authUseCase struct {
 	users       []models.User
-	validTokens []string
+	validTokens map[string]*models.User
 }
 
 func NewAuthUseCase() domain.AuthUseCase {
@@ -25,7 +26,8 @@ func NewAuthUseCase() domain.AuthUseCase {
 	}
 
 	return &authUseCase{
-		users: users,
+		users:       users,
+		validTokens: make(map[string]*models.User),
 	}
 }
 
@@ -53,10 +55,11 @@ func (a *authUseCase) Authenticate(username string, password string) (*models.Us
 	for _, user := range a.users {
 		if user.Username == username && user.Password == password {
 			token := generateToken()
-			a.validTokens = append(a.validTokens, token)
+			a.validTokens[token] = &user
 			return &models.UserClaim{
-				Token: token,
-				Role:  user.Role,
+				UserId: user.Id,
+				Token:  token,
+				Role:   user.Role,
 			}, nil
 		}
 	}
@@ -65,13 +68,28 @@ func (a *authUseCase) Authenticate(username string, password string) (*models.Us
 }
 
 func (a *authUseCase) TokenIsValid(token string) bool {
-	for _, validToken := range a.validTokens {
-		if validToken == token {
-			return true
-		}
+	return a.validTokens[token] != nil
+}
+
+func (a *authUseCase) GetUser(token string) (*models.UserClaim, error) {
+	user := a.validTokens[token]
+	if user == nil {
+		return nil, errors.New("invalid token")
 	}
 
-	return false
+	return &models.UserClaim{
+		UserId: user.Id,
+		Token:  token,
+		Role:   user.Role,
+	}, nil
+}
+
+func (a *authUseCase) GetAllUserIds() []string {
+	ids := make([]string, 0)
+	for _, user := range a.users {
+		ids = append(ids, user.Id)
+	}
+	return ids
 }
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")

@@ -14,9 +14,8 @@ type productData struct {
 }
 
 type productRepository struct {
-	Logger      slog.Logger
-	products    []models.Product
-	validTokens []string
+	Logger   slog.Logger
+	products []models.Product
 }
 
 func NewProductRepository(logger slog.Logger) domain.ProductRepository {
@@ -51,7 +50,7 @@ func readProducts() ([]models.Product, error) {
 	return productData.Products, nil
 }
 
-func (p *productRepository) Get(id int) (*models.Product, error) {
+func (p *productRepository) Get(id string) (*models.Product, error) {
 	for _, product := range p.products {
 		if product.Id == id {
 			return &product, nil
@@ -71,7 +70,7 @@ func (p *productRepository) Create(product models.Product) error {
 	return nil
 }
 
-func (p *productRepository) Delete(id int) error {
+func (p *productRepository) Delete(id string) error {
 	for i, product := range p.products {
 		if product.Id == id {
 			p.products = append(p.products[:i], p.products[i+1:]...)

@@ -11,7 +11,7 @@ type Request struct {
 	Body interface{} `json:"body"`
 
 	// The request headers
-	Headers string `json:"headers"`
+	Headers map[string]string `json:"headers"`
 }
 
 type RequestType string
@@ -24,7 +24,7 @@ const (
 )
 
 type RequestById struct {
-	Id int `json:"id"`
+	Id string `json:"id"`
 }
 
 type SearchRequest struct {

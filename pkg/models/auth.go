@@ -11,6 +11,7 @@ type AuthResponse struct {
 }
 
 type UserClaim struct {
-	Token string `json:"token"`
-	Role  Role   `json:"role"`
+	UserId string `json:"userId"`
+	Token  string `json:"token"`
+	Role   Role   `json:"role"`
 }

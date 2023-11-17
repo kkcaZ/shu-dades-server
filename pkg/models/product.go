@@ -1,7 +1,7 @@
 package models
 
 type Product struct {
-	Id       int    `json:"id"`
+	Id       string `json:"id"`
 	Name     string `json:"name"`
 	Quantity int    `json:"quantity"`
 }
@@ -22,7 +22,7 @@ type CreateProductRequest struct {
 }
 
 type UpdateProductRequest struct {
-	Id       int    `json:"id"`
+	Id       string `json:"id"`
 	Name     string `json:"name"`
 	Quantity int    `json:"quantity"`
 }
