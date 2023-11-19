@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/kkcaz/shu-dades-server/internal/auth"
 	"github.com/kkcaz/shu-dades-server/internal/broadcast"
+	"github.com/kkcaz/shu-dades-server/internal/chat"
 	"github.com/kkcaz/shu-dades-server/internal/config"
 	"github.com/kkcaz/shu-dades-server/internal/notification"
 	"github.com/kkcaz/shu-dades-server/internal/product"
@@ -28,12 +29,17 @@ func Inject(cfg *config.Config) (*routerUc.RouterUseCase, *broadcast.BroadcastUs
 	notificationRepository := notification.NewNotificationRepository(*logger)
 	notificationUseCase := notification.NewNotificationUseCase(notificationRepository, authUseCase, *logger)
 
-	router := routerUc.NewRouterUseCase(*logger)
 	broadcastUseCase := broadcast.NewBroadcastUseCase(*logger, notificationUseCase)
+
+	chatRepository := chat.NewChatRepository(*logger)
+	chatUseCase := chat.NewChatUseCase(chatRepository, authUseCase, broadcastUseCase, *logger)
+
+	router := routerUc.NewRouterUseCase(*logger)
 	product.NewProductHandler(router, productUseCase)
 	auth.NewAuthHandler(router, authUseCase)
-	broadcast.NewBroadcastHandler(router, broadcastUseCase)
+	broadcast.NewBroadcastHandler(router, broadcastUseCase, authUseCase)
 	notification.NewNotificationHandler(router, notificationUseCase, authUseCase)
+	chat.NewChatHandler(router, chatUseCase, authUseCase)
 
 	return router, broadcastUseCase, nil
 }

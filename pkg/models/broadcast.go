@@ -2,6 +2,7 @@ package models
 
 type BroadcastRequest struct {
 	Message string `json:"message"`
+	Type    string `json:"type"`
 }
 
 type BroadcastSubscribeRequest struct {
@@ -12,6 +13,7 @@ type BroadcastSubscribeRequest struct {
 type BroadcastConnection struct {
 	PublishAddress   string `json:"publishAddress"`
 	SubscribeAddress string `json:"subscribeAddress"`
+	UserId           string `json:"userId"`
 }
 
 type BroadcastMessage struct {

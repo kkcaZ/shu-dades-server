@@ -1,8 +1,10 @@
 package broadcast
 
 import (
+	"encoding/json"
 	"github.com/kkcaz/shu-dades-server/internal/domain"
 	"github.com/kkcaz/shu-dades-server/pkg/models"
+	"github.com/pkg/errors"
 	"log/slog"
 	"net"
 )
@@ -21,22 +23,72 @@ func NewBroadcastUseCase(logger slog.Logger, nuc domain.NotificationUseCase) *Br
 	}
 }
 
-func (b *BroadcastUseCase) Publish(message string, sender string) error {
-	err := b.NotificationUseCase.AddAll(message)
+func (b *BroadcastUseCase) Publish(message string, eventType string) error {
+	if eventType == "notification" {
+		err := b.NotificationUseCase.AddAll(message)
+		if err != nil {
+			return err
+		}
+	}
+
+	formattedMessage := models.BroadcastRequest{
+		Message: message,
+		Type:    eventType,
+	}
+	messageBytes, err := json.Marshal(formattedMessage)
 	if err != nil {
 		return err
 	}
 
 	for _, conn := range b.Connections {
 		b.Logger.Info("sending message", "message", message, "remoteAddress", conn)
-		connClient, err := net.Dial("tcp", conn.SubscribeAddress)
+		err := b.publishMessage(messageBytes, conn.SubscribeAddress)
 		if err != nil {
-			b.Logger.Error("failed to dial connection", "error", err)
+			b.Logger.Error("failed to publish message", "error", err)
 			continue
 		}
-
-		_, err = connClient.Write([]byte(message))
 	}
+	return nil
+}
+
+func (b *BroadcastUseCase) PublishToUsers(message string, eventType string, users []string) error {
+	formattedMessage := models.BroadcastRequest{
+		Message: message,
+		Type:    eventType,
+	}
+	messageBytes, err := json.Marshal(formattedMessage)
+	if err != nil {
+		return err
+	}
+
+	for _, user := range users {
+		b.Logger.Info("sending message to user", "message", message, "user", user)
+		for _, conn := range b.Connections {
+			if conn.UserId == user {
+				err := b.publishMessage(messageBytes, conn.SubscribeAddress)
+				if err != nil {
+					b.Logger.Error("failed to publish message", "error", err)
+					continue
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func (b *BroadcastUseCase) publishMessage(msg []byte, address string) error {
+	b.Logger.Info("sending message", "message", string(msg), "remoteAddress", address)
+	connClient, err := net.Dial("tcp", address)
+	if err != nil {
+		return errors.Wrapf(err, "failed to dial connection: ")
+	}
+
+	_, err = connClient.Write(msg)
+	if err != nil {
+		return errors.Wrapf(err, "failed to write message: ")
+	}
+
 	return nil
 }
 
@@ -53,6 +105,24 @@ func (b *BroadcastUseCase) RemoveConnection(addr string) {
 	for i, conn := range b.Connections {
 		if conn.PublishAddress == addr || conn.SubscribeAddress == addr {
 			b.Connections = append(b.Connections[:i], b.Connections[i+1:]...)
+		}
+	}
+}
+
+func (b *BroadcastUseCase) RegisterUser(addr string, userId string) {
+	b.Logger.Info("registering user to broadcast use case", "address", addr, "userId", userId)
+	for i, conn := range b.Connections {
+		if conn.PublishAddress == addr {
+			b.Connections[i].UserId = userId
+		}
+	}
+}
+
+func (b *BroadcastUseCase) RemoveUser(addr string) {
+	b.Logger.Info("removing user from broadcast use case", "address", addr)
+	for i, conn := range b.Connections {
+		if conn.PublishAddress == addr {
+			b.Connections[i].UserId = ""
 		}
 	}
 }

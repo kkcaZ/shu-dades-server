@@ -56,6 +56,7 @@ func (a *authUseCase) Authenticate(username string, password string) (*models.Us
 		if user.Username == username && user.Password == password {
 			token := generateToken()
 			a.validTokens[token] = &user
+
 			return &models.UserClaim{
 				UserId: user.Id,
 				Token:  token,
@@ -100,4 +101,28 @@ func generateToken() string {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(b)
+}
+
+func (a *authUseCase) GetUserById(userId string) (*models.User, error) {
+	for _, user := range a.users {
+		if user.Id == userId {
+			return &user, nil
+		}
+	}
+
+	return nil, errors.New("user not found")
+}
+
+func (a *authUseCase) GetAllUsersInfo() ([]models.UserInfo, error) {
+	userInfos := make([]models.UserInfo, 0)
+	for _, user := range a.users {
+		userInfo := models.UserInfo{
+			Id:       user.Id,
+			Username: user.Username,
+			Email:    user.Email,
+			Role:     user.Role,
+		}
+		userInfos = append(userInfos, userInfo)
+	}
+	return userInfos, nil
 }

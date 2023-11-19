@@ -17,6 +17,7 @@ func NewAuthHandler(router *router.RouterUseCase, uc domain.AuthUseCase) {
 	}
 
 	router.AddRoute("/auth", models.POST, handler.Authenticate)
+	router.AddRoute("/auth/users", models.GET, handler.GetAllUsers)
 }
 
 func (a AuthHandler) Authenticate(ctx *router.RouterContext) {
@@ -46,5 +47,18 @@ func (a AuthHandler) Authenticate(ctx *router.RouterContext) {
 	ctx.JSON(200, models.AuthResponse{
 		StatusCode: 200,
 		UserClaim:  userClaim,
+	})
+}
+
+func (a AuthHandler) GetAllUsers(ctx *router.RouterContext) {
+	users, err := a.AuthUseCase.GetAllUsersInfo()
+	if err != nil {
+		ctx.JSON(500, models.NewInternalServerError())
+		return
+	}
+
+	ctx.JSON(200, models.UserListResponse{
+		StatusCode: 200,
+		Users:      users,
 	})
 }
