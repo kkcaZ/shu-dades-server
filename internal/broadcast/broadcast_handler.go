@@ -32,7 +32,7 @@ func (b *BroadcastHandler) Publish(ctx *routerUc.RouterContext) {
 		return
 	}
 
-	err = b.BroadcastUseCase.Publish(request.Message, ctx.Sender)
+	err = b.BroadcastUseCase.Publish(request.Message, request.Type)
 	if err != nil {
 		ctx.JSON(500, models.NewInternalServerError())
 		return
