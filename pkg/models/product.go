@@ -21,12 +21,6 @@ type CreateProductRequest struct {
 	Quantity int    `json:"quantity"`
 }
 
-type UpdateProductRequest struct {
-	Id       string `json:"id"`
-	Name     string `json:"name"`
-	Quantity int    `json:"quantity"`
-}
-
 type SortBy string
 
 const (

@@ -5,17 +5,20 @@ import (
 	"github.com/kkcaz/shu-dades-server/internal/domain"
 	"github.com/kkcaz/shu-dades-server/pkg/models"
 	"github.com/pkg/errors"
+	"log/slog"
 	"slices"
 	"sort"
 )
 
 type productUseCase struct {
 	ProductRepository domain.ProductRepository
+	Logger            slog.Logger
 }
 
-func NewProductUseCase(productRepository domain.ProductRepository) domain.ProductUseCase {
+func NewProductUseCase(productRepository domain.ProductRepository, logger slog.Logger) domain.ProductUseCase {
 	return &productUseCase{
 		ProductRepository: productRepository,
+		Logger:            logger,
 	}
 }
 
@@ -71,8 +74,8 @@ func (p productUseCase) Search(pageNumber int, pageSize int, sortBy models.SortB
 }
 
 func (p productUseCase) Create(product models.Product) error {
+	p.Logger.Info("creating product", "product", product)
 	product.Id = uuid.New().String()
-
 	err := p.ProductRepository.Create(product)
 	if err != nil {
 		return err
@@ -81,12 +84,12 @@ func (p productUseCase) Create(product models.Product) error {
 }
 
 func (p productUseCase) Update(product *models.Product) error {
-	product, err := p.ProductRepository.Get(product.Id)
+	existingProduct, err := p.ProductRepository.Get(product.Id)
 	if err != nil {
 		return err
 	}
 
-	if product == nil {
+	if existingProduct == nil {
 		return errors.New("product not found")
 	}
 
@@ -104,6 +107,7 @@ func (p productUseCase) Update(product *models.Product) error {
 }
 
 func (p productUseCase) Delete(id string) error {
+	p.Logger.Info("deleting product", "id", id)
 	err := p.ProductRepository.Delete(id)
 	if err != nil {
 		return err

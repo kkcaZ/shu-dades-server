@@ -24,7 +24,7 @@ func Inject(cfg *config.Config) (*routerUc.RouterUseCase, *broadcast.BroadcastUs
 	authUseCase := auth.NewAuthUseCase()
 
 	productRepository := product.NewProductRepository(*logger)
-	productUseCase := product.NewProductUseCase(productRepository)
+	productUseCase := product.NewProductUseCase(productRepository, *logger)
 
 	notificationRepository := notification.NewNotificationRepository(*logger)
 	notificationUseCase := notification.NewNotificationUseCase(notificationRepository, authUseCase, *logger)

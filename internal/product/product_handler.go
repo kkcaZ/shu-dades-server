@@ -113,23 +113,20 @@ func (p ProductHandler) Create(ctx *router.RouterContext) {
 }
 
 func (p ProductHandler) Update(ctx *router.RouterContext) {
-	var updateProductRequest models.UpdateProductRequest
+	var updateProductRequest models.Product
 	err := json.Unmarshal([]byte(ctx.Body), &updateProductRequest)
 	if err != nil {
 		ctx.JSON(500, models.NewInternalServerError())
 		return
 	}
 
-	product := models.Product{
-		Id:   updateProductRequest.Id,
-		Name: updateProductRequest.Name,
-	}
-
-	err = p.ProductUseCase.Update(&product)
+	err = p.ProductUseCase.Update(&updateProductRequest)
 	if err != nil {
 		ctx.JSON(500, models.NewInternalServerError())
 		return
 	}
+
+	ctx.JSON(200, models.NewSuccessResponse(200, "Product updated successfully"))
 }
 
 func (p ProductHandler) Delete(ctx *router.RouterContext) {
