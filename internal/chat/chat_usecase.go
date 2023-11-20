@@ -94,6 +94,11 @@ func (c *chatUseCase) CreateChat(userIds []string) (*models.Chat, error) {
 		return nil, err
 	}
 
+	err = c.Broadcast.PublishToUsers(chat.Id, "newChat", userIds)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to publish message to users")
+	}
+
 	return &chat, nil
 }
 
@@ -115,7 +120,7 @@ func (c *chatUseCase) SendMessage(chatId string, content string, userId string) 
 		return err
 	}
 
-	err = c.NotifyUsers(chatId, message)
+	err = c.NotifyUsersAboutNewMessage(chatId, message)
 	if err != nil {
 		return errors.Wrap(err, "failed to notify users")
 	}
@@ -123,7 +128,7 @@ func (c *chatUseCase) SendMessage(chatId string, content string, userId string) 
 	return nil
 }
 
-func (c *chatUseCase) NotifyUsers(chatId string, message models.Message) error {
+func (c *chatUseCase) NotifyUsersAboutNewMessage(chatId string, message models.Message) error {
 	participantIds, err := c.GetChatParticipantIds(chatId)
 	if err != nil {
 		return errors.Wrapf(err, "failed to get chat participant ids - unable to send socket update")
