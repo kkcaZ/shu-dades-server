@@ -13,11 +13,11 @@ import (
 type chatUseCase struct {
 	Repository domain.ChatRepository
 	Auth       domain.AuthUseCase
-	Broadcast  domain.BroadcastUsecase
+	Broadcast  domain.BroadcastUseCase
 	Logger     slog.Logger
 }
 
-func NewChatUseCase(chatRepository domain.ChatRepository, auth domain.AuthUseCase, broadcast domain.BroadcastUsecase, logger slog.Logger) domain.ChatUseCase {
+func NewChatUseCase(chatRepository domain.ChatRepository, auth domain.AuthUseCase, broadcast domain.BroadcastUseCase, logger slog.Logger) domain.ChatUseCase {
 	return &chatUseCase{
 		Repository: chatRepository,
 		Auth:       auth,

@@ -9,11 +9,13 @@ import (
 
 type ProductHandler struct {
 	ProductUseCase domain.ProductUseCase
+	Auth           domain.AuthUseCase
 }
 
-func NewProductHandler(router *router.RouterUseCase, uc domain.ProductUseCase) {
+func NewProductHandler(router *router.RouterUseCase, uc domain.ProductUseCase, auth domain.AuthUseCase) {
 	handler := ProductHandler{
 		ProductUseCase: uc,
+		Auth:           auth,
 	}
 
 	router.AddRoute("/product", models.GET, handler.Get)
@@ -22,6 +24,9 @@ func NewProductHandler(router *router.RouterUseCase, uc domain.ProductUseCase) {
 	router.AddRoute("/product", models.POST, handler.Create)
 	router.AddRoute("/product", models.PUT, handler.Update)
 	router.AddRoute("/product", models.DELETE, handler.Delete)
+	router.AddRoute("/product/subscribe", models.POST, handler.Subscribe)
+	router.AddRoute("/product/unsubscribe", models.POST, handler.Unsubscribe)
+	router.AddRoute("/product/subscriptions", models.GET, handler.GetProductSubscriptions)
 }
 
 func (p ProductHandler) Get(ctx *router.RouterContext) {
@@ -144,4 +149,72 @@ func (p ProductHandler) Delete(ctx *router.RouterContext) {
 	}
 
 	ctx.JSON(200, models.NewSuccessResponse(200, "Product deleted successfully"))
+}
+
+func (p ProductHandler) Subscribe(ctx *router.RouterContext) {
+	var request models.ProductSubscriptionRequest
+	err := json.Unmarshal([]byte(ctx.Body), &request)
+	if err != nil {
+		ctx.JSON(500, models.NewInternalServerError())
+		return
+	}
+
+	token := ctx.GetAuthToken()
+	userClaim, err := p.Auth.GetUser(*token)
+	if err != nil {
+		ctx.JSON(500, models.NewInternalServerError())
+		return
+	}
+
+	err = p.ProductUseCase.Subscribe(request.ProductId, request.SubType, userClaim.UserId)
+	if err != nil {
+		ctx.JSON(500, models.NewInternalServerError())
+		return
+	}
+
+	ctx.JSON(200, models.NewSuccessResponse(200, "Subscribed to product"))
+}
+
+func (p ProductHandler) Unsubscribe(ctx *router.RouterContext) {
+	var request models.ProductSubscriptionRequest
+	err := json.Unmarshal([]byte(ctx.Body), &request)
+	if err != nil {
+		ctx.JSON(500, models.NewInternalServerError())
+		return
+	}
+
+	token := ctx.GetAuthToken()
+	userClaim, err := p.Auth.GetUser(*token)
+	if err != nil {
+		ctx.JSON(500, models.NewInternalServerError())
+		return
+	}
+
+	err = p.ProductUseCase.Unsubscribe(request.ProductId, request.SubType, userClaim.UserId)
+	if err != nil {
+		ctx.JSON(500, models.NewInternalServerError())
+		return
+	}
+
+	ctx.JSON(200, models.NewSuccessResponse(200, "Unsubscribed from product"))
+}
+
+func (p ProductHandler) GetProductSubscriptions(ctx *router.RouterContext) {
+	token := ctx.GetAuthToken()
+	userClaim, err := p.Auth.GetUser(*token)
+	if err != nil {
+		ctx.JSON(500, models.NewInternalServerError())
+		return
+	}
+
+	subscriptions, err := p.ProductUseCase.GetProductSubscriptions(userClaim.UserId)
+	if err != nil {
+		ctx.JSON(500, models.NewInternalServerError())
+		return
+	}
+
+	ctx.JSON(200, models.ProductSubscriptionListResponse{
+		StatusCode:    200,
+		Subscriptions: subscriptions,
+	})
 }

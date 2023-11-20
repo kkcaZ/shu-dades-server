@@ -12,5 +12,6 @@ type NotificationUseCase interface {
 	Get(userId string) ([]models.Notification, error)
 	Add(userId string, message string) error
 	AddAll(message string) error
+	AddForUsers(message string, users []string) error
 	Delete(userId string, notificationId string) error
 }

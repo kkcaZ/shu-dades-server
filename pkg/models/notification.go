@@ -14,3 +14,7 @@ type NotificationListResponse struct {
 type DeleteNotificationRequest struct {
 	NotificationId string `json:"notificationId"`
 }
+
+type AddNotificationRequest struct {
+	Message string `json:"message"`
+}

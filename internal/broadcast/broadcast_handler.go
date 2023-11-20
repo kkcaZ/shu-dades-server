@@ -8,37 +8,19 @@ import (
 )
 
 type BroadcastHandler struct {
-	BroadcastUseCase domain.BroadcastUsecase
+	BroadcastUseCase domain.BroadcastUseCase
 	Auth             domain.AuthUseCase
 }
 
-func NewBroadcastHandler(router *routerUc.RouterUseCase, uc domain.BroadcastUsecase, auth domain.AuthUseCase) {
+func NewBroadcastHandler(router *routerUc.RouterUseCase, uc domain.BroadcastUseCase, auth domain.AuthUseCase) {
 	handler := BroadcastHandler{
 		BroadcastUseCase: uc,
 		Auth:             auth,
 	}
 
-	router.AddRoute("/broadcast", "POST", handler.Publish)
 	router.AddRoute("/broadcast/subscribe", "POST", handler.Subscribe)
 	router.AddRoute("/broadcast/user", "POST", handler.RegisterUser)
 	router.AddRoute("/broadcast/user", "DELETE", handler.UnregisterUser)
-}
-
-func (b *BroadcastHandler) Publish(ctx *routerUc.RouterContext) {
-	var request models.BroadcastRequest
-	err := json.Unmarshal([]byte(ctx.Body), &request)
-	if err != nil {
-		ctx.JSON(500, models.NewInternalServerError())
-		return
-	}
-
-	err = b.BroadcastUseCase.Publish(request.Message, request.Type)
-	if err != nil {
-		ctx.JSON(500, models.NewInternalServerError())
-		return
-	}
-
-	ctx.JSON(200, models.NewSuccessResponse(200, "Message published"))
 }
 
 func (b *BroadcastHandler) Subscribe(ctx *routerUc.RouterContext) {

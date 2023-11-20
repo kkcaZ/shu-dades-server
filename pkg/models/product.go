@@ -34,3 +34,19 @@ const (
 	Asc  Order = "asc"
 	Desc Order = "desc"
 )
+
+type ProductSubscription struct {
+	ProductId string   `json:"productId"`
+	SubType   string   `json:"subType"`
+	Users     []string `json:"users"`
+}
+
+type ProductSubscriptionRequest struct {
+	ProductId string `json:"productId"`
+	SubType   string `json:"subType"`
+}
+
+type ProductSubscriptionListResponse struct {
+	StatusCode    int                   `json:"statusCode"`
+	Subscriptions []ProductSubscription `json:"subscriptions"`
+}

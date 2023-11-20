@@ -1,6 +1,7 @@
 package product
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"github.com/kkcaz/shu-dades-server/internal/domain"
 	"github.com/kkcaz/shu-dades-server/pkg/models"
@@ -12,12 +13,14 @@ import (
 
 type productUseCase struct {
 	ProductRepository domain.ProductRepository
+	Notification      domain.NotificationUseCase
 	Logger            slog.Logger
 }
 
-func NewProductUseCase(productRepository domain.ProductRepository, logger slog.Logger) domain.ProductUseCase {
+func NewProductUseCase(productRepository domain.ProductRepository, notification domain.NotificationUseCase, logger slog.Logger) domain.ProductUseCase {
 	return &productUseCase{
 		ProductRepository: productRepository,
+		Notification:      notification,
 		Logger:            logger,
 	}
 }
@@ -113,4 +116,59 @@ func (p productUseCase) Delete(id string) error {
 		return err
 	}
 	return nil
+}
+
+func (p productUseCase) Subscribe(productId string, subType string, userId string) error {
+	err := p.ProductRepository.Subscribe(productId, subType, userId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p productUseCase) Unsubscribe(productId string, subType string, userId string) error {
+	err := p.ProductRepository.Unsubscribe(productId, subType, userId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p productUseCase) SendProductNotifications(subType string) error {
+	p.Logger.Info("sending product notifications", "subType", subType)
+
+	subscriptions, err := p.ProductRepository.GetSubscriptions(subType)
+	if err != nil {
+		return err
+	}
+
+	for _, subscription := range subscriptions {
+		product, err := p.Get(subscription.ProductId)
+		if err != nil {
+			p.Logger.Error("failed to get product", "error", err)
+			continue
+		}
+
+		productUpdate := fmt.Sprintf("Product %s has %v quantity remaining", product.Name, product.Quantity)
+
+		p.Logger.Info("sending notification to users", "users", subscription.Users)
+		err = p.Notification.AddForUsers(productUpdate, subscription.Users)
+		if err != nil {
+			p.Logger.Error("failed to send notification", "error", err)
+			continue
+		}
+	}
+
+	return nil
+}
+
+func (p productUseCase) GetProductSubscriptions(userId string) ([]models.ProductSubscription, error) {
+	notifications, err := p.ProductRepository.GetSubscriptionsByUser(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	return notifications, nil
 }

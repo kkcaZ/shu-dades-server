@@ -15,9 +15,3 @@ type BroadcastConnection struct {
 	SubscribeAddress string `json:"subscribeAddress"`
 	UserId           string `json:"userId"`
 }
-
-type BroadcastMessage struct {
-	Message string `json:"message"`
-	Sender  string `json:"sender"`
-	Type    string `json:"type"`
-}

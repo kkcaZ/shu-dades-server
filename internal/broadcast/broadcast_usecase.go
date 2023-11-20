@@ -2,7 +2,6 @@ package broadcast
 
 import (
 	"encoding/json"
-	"github.com/kkcaz/shu-dades-server/internal/domain"
 	"github.com/kkcaz/shu-dades-server/pkg/models"
 	"github.com/pkg/errors"
 	"log/slog"
@@ -10,45 +9,15 @@ import (
 )
 
 type BroadcastUseCase struct {
-	Logger              slog.Logger
-	Connections         []models.BroadcastConnection
-	NotificationUseCase domain.NotificationUseCase
+	Logger      slog.Logger
+	Connections []models.BroadcastConnection
 }
 
-func NewBroadcastUseCase(logger slog.Logger, nuc domain.NotificationUseCase) *BroadcastUseCase {
+func NewBroadcastUseCase(logger slog.Logger) *BroadcastUseCase {
 	return &BroadcastUseCase{
-		Logger:              logger,
-		NotificationUseCase: nuc,
-		Connections:         make([]models.BroadcastConnection, 0),
+		Logger:      logger,
+		Connections: make([]models.BroadcastConnection, 0),
 	}
-}
-
-func (b *BroadcastUseCase) Publish(message string, eventType string) error {
-	if eventType == "notification" {
-		err := b.NotificationUseCase.AddAll(message)
-		if err != nil {
-			return err
-		}
-	}
-
-	formattedMessage := models.BroadcastRequest{
-		Message: message,
-		Type:    eventType,
-	}
-	messageBytes, err := json.Marshal(formattedMessage)
-	if err != nil {
-		return err
-	}
-
-	for _, conn := range b.Connections {
-		b.Logger.Info("sending message", "message", message, "remoteAddress", conn)
-		err := b.publishMessage(messageBytes, conn.SubscribeAddress)
-		if err != nil {
-			b.Logger.Error("failed to publish message", "error", err)
-			continue
-		}
-	}
-	return nil
 }
 
 func (b *BroadcastUseCase) PublishToUsers(message string, eventType string, users []string) error {

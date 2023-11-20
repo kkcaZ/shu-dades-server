@@ -5,6 +5,7 @@ import (
 	"github.com/kkcaz/shu-dades-server/internal/broadcast"
 	"github.com/kkcaz/shu-dades-server/internal/chat"
 	"github.com/kkcaz/shu-dades-server/internal/config"
+	"github.com/kkcaz/shu-dades-server/internal/cron"
 	"github.com/kkcaz/shu-dades-server/internal/notification"
 	"github.com/kkcaz/shu-dades-server/internal/product"
 	routerUc "github.com/kkcaz/shu-dades-server/internal/router"
@@ -22,24 +23,26 @@ func Inject(cfg *config.Config) (*routerUc.RouterUseCase, *broadcast.BroadcastUs
 	logger.Info("Logger initialised")
 
 	authUseCase := auth.NewAuthUseCase()
-
-	productRepository := product.NewProductRepository(*logger)
-	productUseCase := product.NewProductUseCase(productRepository, *logger)
+	broadcastUseCase := broadcast.NewBroadcastUseCase(*logger)
 
 	notificationRepository := notification.NewNotificationRepository(*logger)
-	notificationUseCase := notification.NewNotificationUseCase(notificationRepository, authUseCase, *logger)
+	notificationUseCase := notification.NewNotificationUseCase(notificationRepository, authUseCase, broadcastUseCase, *logger)
 
-	broadcastUseCase := broadcast.NewBroadcastUseCase(*logger, notificationUseCase)
+	productRepository := product.NewProductRepository(*logger)
+	productUseCase := product.NewProductUseCase(productRepository, notificationUseCase, *logger)
 
 	chatRepository := chat.NewChatRepository(*logger)
 	chatUseCase := chat.NewChatUseCase(chatRepository, authUseCase, broadcastUseCase, *logger)
 
 	router := routerUc.NewRouterUseCase(*logger)
-	product.NewProductHandler(router, productUseCase)
+	product.NewProductHandler(router, productUseCase, authUseCase)
 	auth.NewAuthHandler(router, authUseCase)
 	broadcast.NewBroadcastHandler(router, broadcastUseCase, authUseCase)
 	notification.NewNotificationHandler(router, notificationUseCase, authUseCase)
 	chat.NewChatHandler(router, chatUseCase, authUseCase)
+
+	cronManager := cron.NewCronManager(productUseCase, *logger)
+	cronManager.Start()
 
 	return router, broadcastUseCase, nil
 }
