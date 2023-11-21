@@ -64,6 +64,32 @@ func (_m *ChatUseCase) GetChat(chatId string) (*models.Chat, error) {
 	return r0, r1
 }
 
+// GetChatParticipantIds provides a mock function with given fields: chatId
+func (_m *ChatUseCase) GetChatParticipantIds(chatId string) ([]string, error) {
+	ret := _m.Called(chatId)
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]string, error)); ok {
+		return rf(chatId)
+	}
+	if rf, ok := ret.Get(0).(func(string) []string); ok {
+		r0 = rf(chatId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(chatId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetChatThumbnails provides a mock function with given fields: userId
 func (_m *ChatUseCase) GetChatThumbnails(userId string) ([]models.ChatThumbnail, error) {
 	ret := _m.Called(userId)
