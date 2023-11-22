@@ -1,0 +1,18 @@
+{
+  "users": [
+    {
+      "id": "3975b95b-131a-44ce-973a-5b646bbaf70a",
+      "username": "supplier",
+      "password": "password",
+      "email": "info@supplier.com",
+      "role": "supplier"
+    },
+    {
+      "id": "e891aca9-0fd7-49ed-9c2c-68587ce39728",
+      "username": "customer",
+      "password": "password",
+      "email": "john@gmail.com",
+      "role": "customer"
+    }
+  ]
+}

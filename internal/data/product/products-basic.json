@@ -1,0 +1,19 @@
+{
+  "products": [
+    {
+      "Id" : "166e910e-49bd-4334-8522-3939cb7e3a90",
+      "Name" : "Product 1",
+      "Quantity" : 16
+    },
+    {
+      "Id" : "264e354b-d812-41df-a3bc-8b34c418db4e",
+      "Name" : "Product 2",
+      "Quantity" : 20
+    },
+    {
+      "Id" : "a9d10b9f-b139-42be-a283-15a02cc6d656",
+      "Name" : "Product 3",
+      "Quantity" : 27
+    }
+  ]
+}

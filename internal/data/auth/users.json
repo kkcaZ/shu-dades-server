@@ -2,16 +2,23 @@
   "users": [
     {
       "id": "3975b95b-131a-44ce-973a-5b646bbaf70a",
-      "username": "supplier",
+      "username": "TechUK",
       "password": "password",
-      "email": "info@supplier.com",
+      "email": "info@techuk.com",
       "role": "supplier"
     },
     {
       "id": "e891aca9-0fd7-49ed-9c2c-68587ce39728",
-      "username": "customer",
+      "username": "LeedsGadgets",
       "password": "password",
-      "email": "john@gmail.com",
+      "email": "info@leedsgadgets.com",
+      "role": "customer"
+    },
+    {
+      "id": "e891aca9-0fd7-49ed-9c2c-68587ce39729",
+      "username": "SheffieldGizmos",
+      "password": "password",
+      "email": "info@sheffieldgizmos.com",
       "role": "customer"
     }
   ]
