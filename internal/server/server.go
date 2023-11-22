@@ -3,6 +3,7 @@ package server
 import (
 	broadcastUc "github.com/kkcaz/shu-dades-server/internal/broadcast"
 	"github.com/kkcaz/shu-dades-server/internal/config"
+	"github.com/kkcaz/shu-dades-server/internal/domain"
 	r "github.com/kkcaz/shu-dades-server/internal/router"
 	"log"
 	"log/slog"
@@ -24,7 +25,7 @@ func Run() {
 		log.Fatalf("failed to initialise config: %v", err)
 	}
 
-	router, broadcaster, err := Inject(cfg)
+	router, broadcaster, encryptor, err := Inject(cfg)
 	if err != nil {
 		log.Fatalf("failed to inject dependencies: %v", err)
 	}
@@ -45,7 +46,7 @@ func Run() {
 			}
 
 			slog.Info("Accepted connection from " + connect.RemoteAddr().String())
-			go handleConnection(connect, router, broadcaster)
+			go handleConnection(connect, router, *encryptor, broadcaster)
 			if err != nil {
 				slog.Error("failed to handle connection: " + err.Error())
 			}
@@ -56,7 +57,7 @@ func Run() {
 	slog.Info("Shutting down server")
 }
 
-func handleConnection(conn net.Conn, router *r.RouterUseCase, broadcaster *broadcastUc.BroadcastUseCase) {
+func handleConnection(conn net.Conn, router *r.RouterUseCase, encryptor domain.EncryptionUseCase, broadcaster *broadcastUc.BroadcastUseCase) {
 	buffer := make([]byte, 1024)
 
 	for {
@@ -66,16 +67,25 @@ func handleConnection(conn net.Conn, router *r.RouterUseCase, broadcaster *broad
 			break
 		}
 
-		response, err := router.Handle(buffer, mLen, conn.RemoteAddr().String())
+		decryptedMessage, err := encryptor.Decrypt(buffer[:mLen])
+
+		response, err := router.Handle(decryptedMessage, conn.RemoteAddr().String())
 		if err != nil {
 			slog.Error("failed to handle message", "error", err)
+			continue
 		}
 
-		if response != nil {
-			_, err = conn.Write([]byte(*response))
-			if err != nil {
-				slog.Error("failed to write to connection", "error", err)
-			}
+		encryptedResponse, err := encryptor.Encrypt(*response)
+		slog.Info(encryptedResponse)
+		if err != nil {
+			slog.Error("failed to encrypt response", "error", err)
+			continue
+		}
+
+		_, err = conn.Write([]byte(encryptedResponse))
+		if err != nil {
+			slog.Error("failed to write to connection", "error", err)
+			continue
 		}
 	}
 

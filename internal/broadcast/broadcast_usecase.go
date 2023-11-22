@@ -2,6 +2,7 @@ package broadcast
 
 import (
 	"encoding/json"
+	"github.com/kkcaz/shu-dades-server/internal/domain"
 	"github.com/kkcaz/shu-dades-server/pkg/models"
 	"github.com/pkg/errors"
 	"log/slog"
@@ -11,11 +12,13 @@ import (
 type BroadcastUseCase struct {
 	Logger      slog.Logger
 	Connections []models.BroadcastConnection
+	Encryption  domain.EncryptionUseCase
 }
 
-func NewBroadcastUseCase(logger slog.Logger) *BroadcastUseCase {
+func NewBroadcastUseCase(logger slog.Logger, encryption domain.EncryptionUseCase) *BroadcastUseCase {
 	return &BroadcastUseCase{
 		Logger:      logger,
+		Encryption:  encryption,
 		Connections: make([]models.BroadcastConnection, 0),
 	}
 }
@@ -53,7 +56,12 @@ func (b *BroadcastUseCase) publishMessage(msg []byte, address string) error {
 		return errors.Wrapf(err, "failed to dial connection: ")
 	}
 
-	_, err = connClient.Write(msg)
+	encrypted, err := b.Encryption.Encrypt(string(msg))
+	if err != nil {
+		return errors.Wrapf(err, "failed to encrypt message: ")
+	}
+
+	_, err = connClient.Write([]byte(encrypted))
 	if err != nil {
 		return errors.Wrapf(err, "failed to write message: ")
 	}

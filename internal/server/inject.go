@@ -6,6 +6,8 @@ import (
 	"github.com/kkcaz/shu-dades-server/internal/chat"
 	"github.com/kkcaz/shu-dades-server/internal/config"
 	"github.com/kkcaz/shu-dades-server/internal/cron"
+	"github.com/kkcaz/shu-dades-server/internal/domain"
+	encryption2 "github.com/kkcaz/shu-dades-server/internal/encryption"
 	"github.com/kkcaz/shu-dades-server/internal/notification"
 	"github.com/kkcaz/shu-dades-server/internal/product"
 	routerUc "github.com/kkcaz/shu-dades-server/internal/router"
@@ -14,16 +16,18 @@ import (
 	"os"
 )
 
-func Inject(cfg *config.Config) (*routerUc.RouterUseCase, *broadcast.BroadcastUseCase, error) {
+func Inject(cfg *config.Config) (*routerUc.RouterUseCase, *broadcast.BroadcastUseCase, *domain.EncryptionUseCase, error) {
 	logger, err := initLogger(cfg)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed whilst initialising logger")
+		return nil, nil, nil, errors.Wrap(err, "failed whilst initialising logger")
 	}
 
 	logger.Info("Logger initialised")
 
+	encryption := encryption2.NewEncryptionUseCase(*logger)
+
 	authUseCase := auth.NewAuthUseCase()
-	broadcastUseCase := broadcast.NewBroadcastUseCase(*logger)
+	broadcastUseCase := broadcast.NewBroadcastUseCase(*logger, encryption)
 
 	notificationRepository := notification.NewNotificationRepository(*logger)
 	notificationUseCase := notification.NewNotificationUseCase(notificationRepository, authUseCase, broadcastUseCase, *logger)
@@ -44,7 +48,7 @@ func Inject(cfg *config.Config) (*routerUc.RouterUseCase, *broadcast.BroadcastUs
 	cronManager := cron.NewCronManager(productUseCase, *logger)
 	cronManager.Start()
 
-	return router, broadcastUseCase, nil
+	return router, broadcastUseCase, &encryption, nil
 }
 
 func initLogger(cfg *config.Config) (*slog.Logger, error) {
