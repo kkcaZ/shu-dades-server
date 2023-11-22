@@ -26,8 +26,6 @@ func NewRouterUseCase(logger slog.Logger) *RouterUseCase {
 }
 
 func (r *RouterUseCase) Handle(message []byte, remoteAddr string) (*string, error) {
-	r.Logger.Info("received message: " + string(message))
-
 	req, err := r.parseMessage(message)
 	if err != nil {
 		respBytes, err := json.Marshal(models.NewErrorResponse(400, "Invalid request"))
@@ -59,8 +57,6 @@ func (r *RouterUseCase) Handle(message []byte, remoteAddr string) (*string, erro
 	}
 
 	handler(ctx)
-
-	r.Logger.Info("sending message", "message", *ctx.Response, "remoteAddress", remoteAddr)
 	return ctx.Response, nil
 }
 

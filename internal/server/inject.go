@@ -8,6 +8,7 @@ import (
 	"github.com/kkcaz/shu-dades-server/internal/cron"
 	"github.com/kkcaz/shu-dades-server/internal/domain"
 	encryption2 "github.com/kkcaz/shu-dades-server/internal/encryption"
+	"github.com/kkcaz/shu-dades-server/internal/front_controller"
 	"github.com/kkcaz/shu-dades-server/internal/notification"
 	"github.com/kkcaz/shu-dades-server/internal/product"
 	routerUc "github.com/kkcaz/shu-dades-server/internal/router"
@@ -16,10 +17,10 @@ import (
 	"os"
 )
 
-func Inject(cfg *config.Config) (*routerUc.RouterUseCase, *broadcast.BroadcastUseCase, *domain.EncryptionUseCase, error) {
+func Inject(cfg *config.Config) (domain.FrontController, error) {
 	logger, err := initLogger(cfg)
 	if err != nil {
-		return nil, nil, nil, errors.Wrap(err, "failed whilst initialising logger")
+		return nil, errors.Wrap(err, "failed whilst initialising logger")
 	}
 
 	logger.Info("Logger initialised")
@@ -45,10 +46,12 @@ func Inject(cfg *config.Config) (*routerUc.RouterUseCase, *broadcast.BroadcastUs
 	notification.NewNotificationHandler(router, notificationUseCase, authUseCase)
 	chat.NewChatHandler(router, chatUseCase, authUseCase)
 
+	frontController := front_controller.NewFrontController(*router, encryption, broadcastUseCase)
+
 	cronManager := cron.NewCronManager(productUseCase, *logger)
 	cronManager.Start()
 
-	return router, broadcastUseCase, &encryption, nil
+	return frontController, nil
 }
 
 func initLogger(cfg *config.Config) (*slog.Logger, error) {
