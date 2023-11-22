@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"slices"
 	"sort"
+	"strings"
 )
 
 type productUseCase struct {
@@ -50,7 +51,7 @@ func (p productUseCase) Search(pageNumber int, pageSize int, sortBy models.SortB
 	switch sortBy {
 	case models.Name:
 		sort.Slice(products, func(i, j int) bool {
-			return products[i].Name < products[j].Name
+			return strings.ToLower(products[i].Name) < strings.ToLower(products[j].Name)
 		})
 	case models.Quantity:
 		sort.Slice(products, func(i, j int) bool {
